@@ -19,7 +19,11 @@ function createWindow() {
     win.loadURL('http://localhost:5173');
     win.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'));
+    // 生产环境：app.getAppPath() 返回 app.asar 路径
+    const appPath = app.getAppPath();
+    win.loadFile(path.join(appPath, 'dist', 'index.html'));
+    // 开发时打开 DevTools 调试，生产环境可注释掉
+    // win.webContents.openDevTools();
   }
 }
 
