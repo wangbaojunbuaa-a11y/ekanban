@@ -116,7 +116,7 @@ const QualityStatus = () => (
         <div className="relative group">
           <div className="absolute inset-0 bg-[#00F5FF] opacity-20 blur-xl group-hover:opacity-30 transition-opacity" />
           <img 
-            src="/下线10000台仪式合影.jpg" 
+            src="/ceremony-photo.jpg" 
             alt="下线10000台仪式合影" 
             className="relative max-w-full max-h-[60vh] object-contain rounded-lg border-2 border-[#333] group-hover:border-[#00F5FF] transition-colors"
           />
