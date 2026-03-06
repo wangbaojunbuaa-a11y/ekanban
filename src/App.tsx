@@ -10,7 +10,7 @@ import {
   Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ceremonyPhoto from '../public/ceremony-photo.jpg';
+import ceremonyPhoto from './assets/ceremony-photo.jpg';
 
 // --- Types & Data ---
 
