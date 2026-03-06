@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 dist_electron/
+release-v4/
 
 # Logs
 npm-debug.log*

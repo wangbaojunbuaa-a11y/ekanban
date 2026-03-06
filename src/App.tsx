@@ -1,56 +1,47 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Activity,
   ShieldCheck,
-  TrendingUp,
-  Calendar,
-  Settings,
+  Award,
   ChevronLeft,
   ChevronRight,
   Pause,
   Play,
-  Award,
   Zap,
-  Clock,
-  User,
-  Hash
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Types & Mock Data ---
+// --- Types & Data ---
 
-const DATA = {
-  overview: {
-    lineName: "IGBT 自动化封装线 A-04",
-    manager: "张建国 (Zhang Jianguo)",
-    status: "运行中",
-    currentOrder: "WO-20260304-082",
-    uptime: "98.5%",
-    efficiency: "94.2%"
-  },
-  production: {
-    cumulative: 1284567,
-    dailyGoal: 5000,
-    dailyActual: 3842
-  },
-  safety: {
-    daysSinceAccident: 3652, // Over 10 years
-    lastAccidentDate: "2016-03-01",
-    safetyLevel: "AAA",
-    records: "近10年无重大人身/生产安监事故"
-  },
-  improvements: [
-    { year: 2022, title: "视觉检测系统AI升级", award: "精益生产一等奖" },
-    { year: 2023, title: "真空焊接炉能效优化", award: "技术创新突破奖" },
-    { year: 2024, title: "AGV自动补料调度算法", award: "数字化转型标杆" },
-    { year: 2025, title: "全生命周期质量溯源平台", award: "卓越质量贡献奖" }
-  ],
-  plan2026: [
-    { goal: "全线数字化孪生实时监控", detail: "实现毫秒级延迟的虚拟工厂映射" },
-    { goal: "零缺陷(Zero-Defect)制造转型", detail: "引入预测性质量控制模型" },
-    { goal: "产线碳足迹智能追踪系统", detail: "响应绿色制造国家战略" }
-  ]
-};
+// 历年改善数据 - 按日期排序
+const IMPROVEMENTS_HISTORY = [
+  { date: '2017-03-01', title: '功率模块组装流水线', award: '一等奖' },
+  { date: '2018-05-01', title: '功率模块智能精益工位', award: '二等奖' },
+  { date: '2019-06-01', title: '功率模块试验区搬运助力臂', award: '二等奖' },
+  { date: '2022-05-01', title: 'IGBT自动涂敷检测拧紧产线', award: '一等奖' },
+  { date: '2023-06-01', title: '水冷基板组成搬运助力臂', award: '三等奖' },
+  { date: '2023-07-01', title: '风冷功率模块脉动式组装流水线', award: '二等奖' },
+  { date: '2023-07-01', title: '水冷功率模块综合产能提升', award: '二等奖' },
+  { date: '2023-11-01', title: '功率模块辅助自动测试程序', award: '二等奖' },
+  { date: '2024-01-31', title: '3D打印线束内外弯曲半径量规', award: '三等奖' },
+  { date: '2024-07-01', title: '导热硅脂搅拌方式升级', award: '三等奖' },
+  { date: '2024-07-01', title: '功率模块门控线接线视觉防错', award: '一等奖' },
+  { date: '2024-09-01', title: '功率模块负载测试区门禁升级', award: '三等奖' },
+  { date: '2024-09-30', title: 'IGBT拧紧顺序视觉控制系统', award: '一等奖' },
+  { date: '2024-10-07', title: '功率模块试验台温度传感器固定机构', award: '二等奖' }
+];
+
+// 2026年计划数据
+const PLAN_2026 = [
+  { date: '2026-04-01', title: '风冷功率模块自动测试试验台' },
+  { date: '2026-04-01', title: '适配板端子螺钉烧死视觉检查' },
+  { date: '2026-07-01', title: 'IGBT自动涂敷检测拧紧产线升级改造' },
+  { date: '2026-07-01', title: '组装流水线托盘及母排、水冷基板料车工装升级' },
+  { date: '2026-08-01', title: '功率模块各产线工位与手动涂敷、拧紧数据联通' },
+  { date: '2026-09-01', title: '通用功率器件自动涂敷机' },
+  { date: '2026-09-30', title: '功率模块NCR区域综合升级' },
+  { date: '2026-11-01', title: '水冷功率模块自动测试试验台' }
+];
 
 // --- Components ---
 
@@ -60,7 +51,7 @@ const SlideWrapper: React.FC<{ children: React.ReactNode; title: string; icon: R
     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00F5FF] to-transparent opacity-50" />
     <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#00F5FF 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-    <header className="flex justify-between items-end mb-12 relative z-10">
+    <header className="flex justify-between items-end mb-8 relative z-10">
       <div className="flex items-center gap-4">
         <div className="p-3 bg-[#1A1A1C] border border-[#333] rounded-lg">
           <Icon className="w-8 h-8 text-[#00F5FF]" />
@@ -71,8 +62,12 @@ const SlideWrapper: React.FC<{ children: React.ReactNode; title: string; icon: R
         </div>
       </div>
       <div className="text-right">
-        <div className="text-2xl font-mono font-bold text-[#FF6B00]">14:35:22</div>
-        <div className="text-[10px] tracking-widest text-[#444] uppercase">2026.03.04 WED</div>
+        <div className="text-2xl font-mono font-bold text-[#FF6B00]">
+          {new Date().toLocaleTimeString('zh-CN', { hour12: false })}
+        </div>
+        <div className="text-[10px] tracking-widest text-[#444] uppercase">
+          {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })} {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date().getDay()]}
+        </div>
       </div>
     </header>
 
@@ -87,92 +82,115 @@ const SlideWrapper: React.FC<{ children: React.ReactNode; title: string; icon: R
   </div>
 );
 
-const LineOverview = () => (
-  <SlideWrapper title="Line Overview" icon={Activity}>
-    <div className="grid grid-cols-2 gap-8 h-full">
-      <div className="space-y-6">
-        <div className="bg-[#111] border-l-4 border-[#00F5FF] p-6">
-          <label className="text-xs text-[#555] block mb-2 uppercase tracking-widest">Line Identity</label>
-          <div className="text-3xl font-bold">{DATA.overview.lineName}</div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[#111] p-4 border border-[#222]">
-            <label className="text-[10px] text-[#555] block mb-1 uppercase tracking-widest">Manager</label>
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-[#00F5FF]" />
-              <span className="font-semibold">{DATA.overview.manager}</span>
-            </div>
-          </div>
-          <div className="bg-[#111] p-4 border border-[#222]">
-            <label className="text-[10px] text-[#555] block mb-1 uppercase tracking-widest">Status</label>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="font-semibold text-green-500">{DATA.overview.status}</span>
+// 第一页：质量现状
+const QualityStatus = () => (
+  <SlideWrapper title="质量现状" icon={ShieldCheck}>
+    <div className="grid grid-cols-2 gap-12 h-full items-center">
+      {/* 左侧：零安监 + 介绍文字 */}
+      <div className="flex flex-col justify-center space-y-8">
+        {/* 零安监突出显示 */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-[#00F5FF] opacity-10 blur-3xl" />
+          <div className="relative bg-gradient-to-br from-[#1A1A1C] to-[#111] border-2 border-[#00F5FF] p-8 rounded-lg">
+            <div className="text-center">
+              <div className="text-[8rem] font-black text-[#00F5FF] leading-none tracking-tighter">零</div>
+              <div className="text-4xl font-bold text-white mt-2 tracking-widest">安 监</div>
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#00F5FF]/20 rounded-full">
+                <div className="w-2 h-2 rounded-full bg-[#00F5FF] animate-pulse" />
+                <span className="text-sm font-bold text-[#00F5FF]">安全生产标杆班组</span>
+              </div>
             </div>
           </div>
         </div>
-        <div className="bg-[#111] p-6 border border-[#222] relative overflow-hidden group">
-          <div className="absolute right-[-20px] bottom-[-20px] opacity-10 rotate-12 transition-transform group-hover:scale-110">
-            <Hash size={120} />
-          </div>
-          <label className="text-xs text-[#555] block mb-2 uppercase tracking-widest">Current Job Order</label>
-          <div className="text-4xl font-mono text-[#00F5FF]">{DATA.overview.currentOrder}</div>
+
+        {/* 班组介绍 */}
+        <div className="bg-[#111] border-l-4 border-[#FF6B00] p-6">
+          <p className="text-xl text-[#CCC] leading-relaxed">
+            模块班组自<span className="text-[#00F5FF] font-bold">2015年</span>成立以来，已累计生产各类型模块近<span className="text-[#FF6B00] font-bold">20000台</span>，从未发生过因生产制造环节产生的安全和重大质量问题。
+          </p>
         </div>
       </div>
-      <div className="grid grid-rows-2 gap-6">
-        <div className="bg-[#111] border border-[#222] p-6 flex flex-col justify-center items-center relative">
-          <div className="text-6xl font-black text-[#E0E0E0]">{DATA.overview.uptime}</div>
-          <div className="text-xs text-[#555] mt-2 uppercase tracking-[0.2em]">Overall Uptime</div>
-          <div className="absolute inset-0 opacity-20 bg-gradient-to-t from-[#00F5FF]/10 to-transparent" />
-        </div>
-        <div className="bg-[#111] border border-[#222] p-6 flex flex-col justify-center items-center relative">
-          <div className="text-6xl font-black text-[#FF6B00]">{DATA.overview.efficiency}</div>
-          <div className="text-xs text-[#555] mt-2 uppercase tracking-[0.2em]">OEE Efficiency</div>
-          <div className="absolute inset-0 opacity-20 bg-gradient-to-t from-[#FF6B00]/10 to-transparent" />
+
+      {/* 右侧：照片 */}
+      <div className="flex justify-center items-center">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-[#00F5FF] opacity-20 blur-xl group-hover:opacity-30 transition-opacity" />
+          <img 
+            src="/下线10000台仪式合影.jpg" 
+            alt="下线10000台仪式合影" 
+            className="relative max-w-full max-h-[60vh] object-contain rounded-lg border-2 border-[#333] group-hover:border-[#00F5FF] transition-colors"
+          />
+          <div className="absolute bottom-[-40px] left-0 right-0 text-center">
+            <span className="text-sm text-[#666] tracking-wider">下线10000台仪式合影</span>
+          </div>
         </div>
       </div>
     </div>
   </SlideWrapper>
 );
 
-const ProductionCounter = () => {
-  const [count, setCount] = useState(DATA.production.cumulative - 100);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCount(prev => prev + Math.floor(Math.random() * 3));
-    }, 2000);
-    return () => clearInterval(timer);
+// 第二页：历年改善时间轴
+const ImprovementTimeline = () => {
+  // 按年份分组
+  const groupedByYear = useMemo(() => {
+    const groups: { [key: number]: typeof IMPROVEMENTS_HISTORY } = {};
+    IMPROVEMENTS_HISTORY.forEach(item => {
+      const year = new Date(item.date).getFullYear();
+      if (!groups[year]) groups[year] = [];
+      groups[year].push(item);
+    });
+    return Object.entries(groups).sort((a, b) => Number(b[0]) - Number(a[0]));
   }, []);
 
   return (
-    <SlideWrapper title="Cumulative Output" icon={TrendingUp}>
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="text-[12rem] font-black font-mono leading-none tracking-tighter text-[#E0E0E0] relative">
-          {count.toLocaleString()}
-          <div className="absolute -top-8 right-0 text-sm font-bold text-[#00F5FF] flex items-center gap-1">
-            <TrendingUp size={16} /> +12.4% vs LAST MONTH
-          </div>
+    <SlideWrapper title="历年改善成果" icon={Award}>
+      <div className="h-full overflow-hidden">
+        {/* 年份标签 */}
+        <div className="flex gap-4 mb-6">
+          {groupedByYear.map(([year]) => (
+            <div key={year} className="px-4 py-2 bg-[#1A1A1C] border border-[#333] rounded">
+              <span className="text-lg font-bold text-[#00F5FF]">{year}</span>
+              <span className="text-xs text-[#666] ml-2">年</span>
+            </div>
+          ))}
         </div>
-        <div className="w-2/3 h-4 bg-[#111] border border-[#222] mt-12 overflow-hidden rounded-full">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${(DATA.production.dailyActual / DATA.production.dailyGoal) * 100}%` }}
-            className="h-full bg-gradient-to-r from-[#00F5FF] to-[#00A3FF]"
-          />
-        </div>
-        <div className="flex justify-between w-2/3 mt-4">
-          <div className="text-left">
-            <span className="text-[10px] text-[#555] block">DAILY ACTUAL</span>
-            <span className="text-2xl font-bold">{DATA.production.dailyActual}</span>
-          </div>
-          <div className="text-center">
-            <span className="text-[10px] text-[#555] block">PROGRESS</span>
-            <span className="text-2xl font-bold">{Math.round((DATA.production.dailyActual / DATA.production.dailyGoal) * 100)}%</span>
-          </div>
-          <div className="text-right">
-            <span className="text-[10px] text-[#555] block">DAILY GOAL</span>
-            <span className="text-2xl font-bold">{DATA.production.dailyGoal}</span>
+
+        {/* 时间轴内容 */}
+        <div className="overflow-y-auto h-[calc(100%-60px)] pr-4 custom-scrollbar">
+          <div className="relative pl-8">
+            {/* 中央时间线 */}
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-[#333]" />
+            
+            {groupedByYear.map(([year, items]) => (
+              <div key={year} className="mb-8">
+                {/* 年份节点 */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="absolute left-[-8px] w-4 h-4 rounded-full bg-[#00F5FF] border-4 border-[#0A0A0B]" />
+                  <div className="text-3xl font-black text-[#00F5FF]">{year}</div>
+                </div>
+                
+                {/* 该年的改善项 */}
+                <div className="grid grid-cols-2 gap-4 ml-6">
+                  {items.map((item, idx) => (
+                    <div key={`${year}-${idx}`} className="bg-[#111] border border-[#222] p-4 hover:border-[#00F5FF] transition-colors group">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm text-[#666]">{item.date}</span>
+                        <span className={`px-2 py-1 text-xs font-bold rounded ${
+                          item.award === '一等奖' ? 'bg-[#FF6B00]/20 text-[#FF6B00]' :
+                          item.award === '二等奖' ? 'bg-[#00F5FF]/20 text-[#00F5FF]' :
+                          'bg-[#666]/20 text-[#888]'
+                        }`}>
+                          {item.award}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-bold text-white group-hover:text-[#00F5FF] transition-colors">
+                        {item.title}
+                      </h4>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -180,105 +198,73 @@ const ProductionCounter = () => {
   );
 };
 
-const SafetyRecord = () => (
-  <SlideWrapper title="Safety Excellence" icon={ShieldCheck}>
-    <div className="grid grid-cols-5 gap-8 h-full items-center">
-      <div className="col-span-3 flex flex-col justify-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1A1A1C] border border-[#333] rounded-full w-fit mb-6">
-          <div className="w-2 h-2 rounded-full bg-[#FF6B00] animate-ping" />
-          <span className="text-xs font-bold text-[#FF6B00] tracking-widest">CRITICAL SAFETY MONITOR</span>
-        </div>
-        <h3 className="text-4xl font-bold mb-4">连续安全生产天数</h3>
-        <div className="text-[10rem] font-black font-mono text-[#00F5FF] leading-none mb-4">
-          {DATA.safety.daysSinceAccident}
-        </div>
-        <div className="p-6 bg-[#111] border-l-4 border-[#FF6B00] max-w-xl">
-          <p className="text-xl text-[#AAA] leading-relaxed italic">
-            "{DATA.safety.records}"
-          </p>
-          <div className="mt-4 flex gap-8">
-            <div>
-              <span className="text-[10px] text-[#555] block uppercase">Safety Grade</span>
-              <span className="text-2xl font-bold text-white">{DATA.safety.safetyLevel}</span>
-            </div>
-            <div>
-              <span className="text-[10px] text-[#555] block uppercase">Zero Incident Since</span>
-              <span className="text-2xl font-bold text-white">{DATA.safety.lastAccidentDate}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-span-2 flex justify-center items-center">
-        <div className="relative">
-          <div className="w-80 h-80 rounded-full border-8 border-[#1A1A1C] flex items-center justify-center relative">
-            <ShieldCheck size={160} className="text-[#00F5FF] opacity-20 absolute" />
-            <div className="text-center z-10">
-              <div className="text-7xl font-black italic">10Y+</div>
-              <div className="text-xs text-[#555] tracking-widest uppercase">Safe Record</div>
-            </div>
-            {/* Pulsing decorative rings */}
-            <div className="absolute inset-0 rounded-full border border-[#00F5FF] opacity-20 animate-ping" style={{ animationDuration: '3s' }} />
-          </div>
-        </div>
-      </div>
-    </div>
-  </SlideWrapper>
-);
+// 第三页：2026年计划时间轴
+const Plan2026Timeline = () => {
+  // 按月份分组
+  const groupedByMonth = useMemo(() => {
+    const groups: { [key: string]: typeof PLAN_2026 } = {};
+    PLAN_2026.forEach(item => {
+      const month = item.date.substring(5, 7);
+      if (!groups[month]) groups[month] = [];
+      groups[month].push(item);
+    });
+    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+  }, []);
 
-const ImprovementTimeline = () => (
-  <SlideWrapper title="Quality Journey" icon={Award}>
-    <div className="relative h-full py-12 px-20">
-      {/* Central Line */}
-      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-[#222]" />
+  const monthNames: { [key: string]: string } = {
+    '04': '四月', '05': '五月', '06': '六月', '07': '七月',
+    '08': '八月', '09': '九月', '10': '十月', '11': '十一月', '12': '十二月'
+  };
 
-      <div className="space-y-24">
-        {DATA.improvements.map((item, index) => (
-          <div key={item.year} className={`flex items-center gap-12 ${index % 2 === 0 ? 'flex-row-reverse' : ''}`}>
-            <div className={`flex-1 ${index % 2 === 0 ? 'text-left' : 'text-right'}`}>
-              <div className="text-5xl font-black text-[#00F5FF] mb-2">{item.year}</div>
-              <div className="text-2xl font-bold text-white mb-2">{item.title}</div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1A1A1C] border border-[#333] rounded">
-                <Award size={14} className="text-[#FF6B00]" />
-                <span className="text-xs text-[#AAA] uppercase tracking-widest">{item.award}</span>
+  return (
+    <SlideWrapper title="2026年改善计划" icon={Zap}>
+      <div className="h-full">
+        {/* 标题区域 */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="text-[6rem] font-black text-[#00F5FF] leading-none">2026</div>
+          <div className="ml-4 text-2xl text-[#666] uppercase tracking-widest">年度计划</div>
+        </div>
+
+        {/* 计划时间轴 */}
+        <div className="flex gap-6 overflow-x-auto h-[calc(100%-150px)] pb-4 custom-scrollbar">
+          {groupedByMonth.map(([month, items]) => (
+            <div key={month} className="flex-shrink-0 w-64 bg-[#111] border border-[#222] rounded-lg overflow-hidden group hover:border-[#00F5FF] transition-colors">
+              {/* 月份头部 */}
+              <div className="bg-gradient-to-r from-[#00F5FF]/20 to-transparent p-4 border-b border-[#222]">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-[#00F5FF]" />
+                  <span className="text-2xl font-bold text-[#00F5FF]">{monthNames[month] || month}</span>
+                </div>
+              </div>
+              
+              {/* 该月的计划项 */}
+              <div className="p-4 space-y-4">
+                {items.map((item, idx) => (
+                  <div key={`${month}-${idx}`} className="bg-[#1A1A1C] border-l-2 border-[#FF6B00] p-3 hover:bg-[#222] transition-colors">
+                    <div className="text-xs text-[#666] mb-1">{item.date}</div>
+                    <h4 className="text-sm font-bold text-white leading-snug">{item.title}</h4>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="relative z-10">
-              <div className="w-6 h-6 rounded-full bg-[#0A0A0B] border-4 border-[#00F5FF] flex items-center justify-center">
-                <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
-              </div>
-            </div>
-            <div className="flex-1" />
-          </div>
-        ))}
-      </div>
-    </div>
-  </SlideWrapper>
-);
+          ))}
+        </div>
 
-const Plan2026 = () => (
-  <SlideWrapper title="2026 Future Roadmap" icon={Zap}>
-    <div className="grid grid-cols-3 gap-8 h-full items-center">
-      {DATA.plan2026.map((item, index) => (
-        <div key={index} className="bg-[#111] border border-[#222] p-8 h-[400px] flex flex-col justify-between group hover:border-[#00F5FF] transition-all duration-500 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
-            <div className="text-9xl font-black italic">{index + 1}</div>
+        {/* 底部统计 */}
+        <div className="absolute bottom-20 right-8 flex gap-8">
+          <div className="text-center">
+            <div className="text-4xl font-black text-[#00F5FF]">{PLAN_2026.length}</div>
+            <div className="text-xs text-[#666] uppercase tracking-wider">项计划</div>
           </div>
-          <div>
-            <div className="w-12 h-12 bg-[#1A1A1C] border border-[#333] flex items-center justify-center rounded-lg mb-8 text-[#00F5FF]">
-              <Zap size={24} />
-            </div>
-            <h3 className="text-3xl font-black mb-6 leading-tight uppercase italic">{item.goal}</h3>
-          </div>
-          <div className="bg-[#1A1A1C] p-4 border-l-2 border-[#FF6B00]">
-            <p className="text-[#777] leading-relaxed">
-              {item.detail}
-            </p>
+          <div className="text-center">
+            <div className="text-4xl font-black text-[#FF6B00]">{groupedByMonth.length}</div>
+            <div className="text-xs text-[#666] uppercase tracking-wider">个时间节点</div>
           </div>
         </div>
-      ))}
-    </div>
-  </SlideWrapper>
-);
+      </div>
+    </SlideWrapper>
+  );
+};
 
 // --- Main App ---
 
@@ -289,11 +275,9 @@ export default function EKanbanApp() {
   const [isLocked, setIsLocked] = useState(false);
 
   const slides = useMemo(() => [
-    <LineOverview />,
-    <ProductionCounter />,
-    <SafetyRecord />,
+    <QualityStatus />,
     <ImprovementTimeline />,
-    <Plan2026 />
+    <Plan2026Timeline />
   ], []);
 
   const nextSlide = useCallback(() => {
